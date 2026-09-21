@@ -1,0 +1,19 @@
+# dsh-keychain-credentials — mount the macOS Keychain credentials provider.
+#
+# Row semantics (getting this wrong bricks startup):
+#   - "- insert: [...]"  ADDS new rows; inserting an id a lower layer already
+#     defines is a hard failure ("duplicate loader entry id").
+#   - "- id: NAME"       OVERRIDES config/disabled, but CANNOT change `name`.
+#
+# So the stock file-backed provider is disabled and the Keychain provider is
+# mounted under a NEW id. Remove both rows to fall back to the stock plaintext
+# .credentials.yaml.
+- id: credentials
+  disabled: true
+
+- insert:
+    - id: credentials-keychain
+      name: dsh-keychain-credentials
+      config:
+        servicePrefix: dsh-credentials
+        account: dsh
