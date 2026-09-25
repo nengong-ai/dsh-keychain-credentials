@@ -62,7 +62,8 @@ Semantics kept from the seam contract:
 - `set`/`unset` reject while a read-only source (the environment) shadows the ref.
 - `describe` checks existence **without reading the value** — a status query never pulls plaintext into the agent process.
 - Errors from the `security` CLI are sanitized: exit code and stderr only, never the command line (which would carry the secret on a failed `set`).
-- Secrets are fed to `security` over stdin, never argv, so they never appear in `ps`.
+- Secrets are always fed to `security` over stdin, never argv, so they never appear in `ps`.
+- Values longer than 128 bytes are written through `security -i` rather than the stdin password prompt: that prompt stores at most 128 bytes and truncates anything longer **silently**. Interactive mode has no such limit but reports no failure exit code, so those writes are confirmed by reading the value back. (The account token DSH stores as a `records` entry is one such value.)
 
 ## Test
 

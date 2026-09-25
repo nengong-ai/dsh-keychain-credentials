@@ -1,2 +1,4 @@
-node_modules/
+# No trailing slash: the README tells testers to symlink a profile's node_modules
+# in, and a symlink is not a directory, so `node_modules/` would not match it.
+node_modules
 *.tgz

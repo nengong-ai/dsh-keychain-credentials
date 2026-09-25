@@ -52,6 +52,14 @@ const SECURITY_BIN = '/usr/bin/security'
 /** `security` exits 44 when the requested item does not exist. */
 const ERR_SEC_ITEM_NOT_FOUND = 44
 
+/** `security add-generic-password -w` fed over stdin stores at most this many bytes. */
+const STDIN_PASSWORD_LIMIT = 128
+
+/** Quote one interactive-mode argument; `security -i` honours `\"` and `\\` inside quotes. */
+function quoteForInteractive(value) {
+  return `"${value.replace(/\\/gu, '\\\\').replace(/"/gu, '\\"')}"`
+}
+
 /** Run `security` with the given argv, feeding `stdin` when provided. */
 function runSecurity(args, stdin) {
   return new Promise((resolve, reject) => {
@@ -149,12 +157,26 @@ export class KeychainCredentialProvider extends CredentialProvider {
       }
       return
     }
-    // Two copies over stdin: `security` prompts for confirmation. Passing the
-    // value as argv would expose it in `ps` for the life of the process.
+    if (Buffer.byteLength(value, 'utf8') <= STDIN_PASSWORD_LIMIT) {
+      // Two copies over stdin: `security` prompts for confirmation. Passing the
+      // value as argv would expose it in `ps` for the life of the process.
+      await runSecurity(
+        ['add-generic-password', '-U', '-s', service, '-a', this.config.account, '-w'],
+        `${value}\n${value}\n`
+      )
+      return
+    }
+    // The stdin reader above cuts every value at STDIN_PASSWORD_LIMIT bytes, which a
+    // longer secret (an account token, say) would be stored silently short by.
+    // Interactive mode has no such limit but reports no failure exit code, so this
+    // path confirms the write by reading the value back instead of trusting the exit.
     await runSecurity(
-      ['add-generic-password', '-U', '-s', service, '-a', this.config.account, '-w'],
-      `${value}\n${value}\n`
+      ['-i'],
+      `add-generic-password -U -s ${quoteForInteractive(service)} -a ${quoteForInteractive(this.config.account)} -w ${quoteForInteractive(value)}\n`
     )
+    if ((await this.readStored(service)) !== value) {
+      throw new Error(`credentials-keychain: "${service}" did not read back intact after write`)
+    }
   }
 
   async resolve(ref) {

@@ -1,6 +1,6 @@
 {
   "name": "dsh-keychain-credentials",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "macOS Keychain credentials provider for DeepSeek Harness (dsh) — refs and records both stored in the login keychain, never in a plaintext file",
   "type": "module",
   "main": "src/index.js",
