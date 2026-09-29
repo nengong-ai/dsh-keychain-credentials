@@ -22,24 +22,26 @@ Net: the bar rises from "any read primitive" to "must exec `/usr/bin/security` a
 ## Requirements
 
 - macOS (`/usr/bin/security`)
-- DeepSeek Harness ≥ 0.1.0-rc.6
+- DeepSeek Harness ≥ 0.1.0-rc.6 (peer ranges cover both the 0.1.x line and `0.2.0-rc.1`)
+
+On DSH **0.2 and newer the plugin must be mounted as a package** — installed into the profile, or linked into its `node_modules` — and referenced by package name. A row that points at an absolute `index.js` path does not work there, for two reasons: the runtime applies its peer-compatibility gate to plugin rows (ranges that do not admit the running version disable the row), and a module loaded from an absolute path gets no host peer resolution (the harness's own packages live inside `app.asar`, so there is no on-disk copy to resolve).
 
 ## Install
 
 ```sh
-dsh plugin --profile web add dsh-keychain-credentials
+dsh plugin --profile <profile> add dsh-keychain-credentials
 # or from source:
-dsh plugin --profile web add github:<you>/dsh-keychain-credentials
+dsh plugin --profile <profile> add github:<you>/dsh-keychain-credentials
 ```
 
-Then the bundle's `cordis.patch.yml` disables the stock provider and mounts this one. If you prefer to wire it by hand, add to your patch layer (`~/.dsh/cordis.patch.yml` or `--patch <file>`):
+Then the bundle's `cordis.patch.yml` disables the stock provider and mounts this one. If you prefer to wire it by hand, add to your patch layer (`~/.dsh/profiles/<profile>/cordis.patch.yml` or `--patch <file>`):
 
 ```yaml
 - id: credentials
   disabled: true
 - insert:
     - id: credentials-keychain
-      name: dsh-keychain-credentials
+      name: dsh-keychain-credentials     # 包名，不是绝对路径；插件须已装/链接进该 profile
       config:
         servicePrefix: dsh-credentials   # keychain service prefix
         account: dsh                     # keychain account name
@@ -68,10 +70,11 @@ Semantics kept from the seam contract:
 ## Test
 
 ```sh
+npm install   # or pnpm install — devDependencies supply the seam packages
 npm test
 ```
 
-Requires a real DSH `node_modules` (peer deps) — run from a profile with `@deepseek-ai/dsh-credentials` installed, or symlink one.
+`test/test-provider.mjs` exercises the real macOS login keychain with throwaway probe entries under the `dsh-credentials-test` service prefix (it writes, reads back, and deletes them; it never touches a real key). `test/test-e2e.mjs` checks the peer ranges against the installed harness and, given a profile name (`node test/test-e2e.mjs desktop`), the profile's mount shape.
 
 ## License
 

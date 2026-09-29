@@ -1,6 +1,6 @@
 {
   "name": "dsh-keychain-credentials",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "macOS Keychain credentials provider for DeepSeek Harness (dsh) — refs and records both stored in the login keychain, never in a plaintext file",
   "type": "module",
   "main": "src/index.js",
@@ -16,7 +16,7 @@
     "LICENSE"
   ],
   "scripts": {
-    "test": "node --test test/"
+    "test": "node --test"
   },
   "keywords": [
     "dsh",
@@ -34,9 +34,15 @@
   ],
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
-    "@deepseek-ai/dsh-credentials": ">=0.1.2-rc.1 <0.2.0",
-    "@deepseek-ai/dsh-launch-environment": ">=0.1.2-rc.1 <0.2.0",
+    "@deepseek-ai/dsh-credentials": ">=0.1.2-rc.1 <0.3.0-0",
+    "@deepseek-ai/dsh-launch-environment": ">=0.1.2-rc.1 <0.3.0-0",
     "@deepseek-ai/schemastery": "^3.18.2"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "4.0.4",
+    "@deepseek-ai/dsh-credentials": "0.2.0-rc.1",
+    "@deepseek-ai/dsh-launch-environment": "0.2.0-rc.1",
+    "@deepseek-ai/schemastery": "3.18.4"
   },
   "dsh": {
     "bundle": {
